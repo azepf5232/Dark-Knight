@@ -1,0 +1,80 @@
+---
+title: "Final Project"
+format: html
+---
+
+
+
+```{python}
+import requests
+from bs4 import BeautifulSoup
+import pandas as pd
+```
+
+For this project I wanted to identify which character drives the narative in The Dark Knight Rises movie. Once I scrapped the script from https://imsdb.com/scripts/Dark-Knight-Rises,-The.html into the data frame of 
+
+
+```{python}
+# URL of the website to scrape
+
+dark_knight_link = "https://imsdb.com/scripts/Dark-Knight-Rises,-The.html"
+link_request = requests.get(dark_knight_link)
+soup = BeautifulSoup(link_request.content, 'html.parser')
+
+dark_knight_script = soup.select('pre')
+dark_knight_script = [x.text.strip() for x in dark_knight_script]
+
+entry_info = dark_knight_script[0].split('\n')
+
+entry_info = [x.strip() for x in entry_info if x.strip() != '']
+
+characters = []
+dialogues = []
+
+for row, line in enumerate(entry_info[10:]):
+    if line == line.upper() and not line.endswith('.') and not line.endswith(':') and not line.startswith('INT') and not line.startswith('EXT'):
+        characters.append(line)
+        next_line = entry_info[10:][row + 1]
+        dialogues.append(next_line)
+
+df_dark_knight = pd.DataFrame({'Character': characters, 'Dialogue': dialogues})
+
+df_dark_knight.head()
+
+```
+
+
+
+```{python}
+## Number of times a character speaks
+character_counts = df_dark_knight['Character'].value_counts()
+
+top_characters = character_counts.head(5)
+```
+
+```{python}
+import matplotlib.pyplot as plt
+
+
+top_characters.plot(kind='bar')
+
+plt.title("Top 5 Speaking Characters")
+plt.xlabel("Character Name")
+plt.ylabel("Number of Lines")
+plt.xticks(rotation=0)
+plt.tight_layout()
+plt.show()
+
+```
+
+
+```{python}
+## Sentiment Analysis of top speaking characters
+
+from vaderSentiment.vaderSentiment import SentimentIntensityAnalyzer
+
+vader = SentimentIntensityAnalyzer()
+
+
+
+```
